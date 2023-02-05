@@ -388,40 +388,41 @@ void processPID()
         windowStartTime += WindowSize;
     }
 
-	Serial.print("Output");
-	Serial.print("\t");
-	Serial.print(Output);
-	Serial.print("\t");
+	// Serial.print("Output");
+	// Serial.print("\t");
+	// Serial.print(Output);
+	// Serial.print("\t");
 	
-	Serial.print("windowStartTime");
-	Serial.print("\t");
-	Serial.print(windowStartTime);
-	Serial.print("\t");	
+	// Serial.print("windowStartTime");
+	// Serial.print("\t");
+	// Serial.print(windowStartTime);
+	// Serial.print("\t");	
 	
 	unsigned long timeTest = millis() - windowStartTime;
 	
-	Serial.print("millis - windowStartTime");
-	Serial.print("\t");
-	Serial.print(timeTest);
-	Serial.print("\t");
+	// Serial.print("millis - windowStartTime");
+	// Serial.print("\t");
+	// Serial.print(timeTest);
+	// Serial.print("\t");
 	
     if (Output <= timeTest)
     {
-		Serial.print("ProcessPID LOW");
-		Serial.print("\n");
+		// Serial.print("ProcessPID LOW");
+		// Serial.print("\n");
 		
         digitalWrite(SCR_PIN, LOW);
     }
     else
     {
-		Serial.print("ProcessPID HIGH");
-		Serial.print("\n");
+		// Serial.print("ProcessPID HIGH");
+		// Serial.print("\n");
 	    digitalWrite(SCR_PIN, HIGH);
     }
 }
 
-void readTemp() {
-	//Serial.println("read temp called");
+void readTemp() {	
+    Serial.print("RTD Temp");
+    Serial.println(thermo.readRTD());
     currentMillis = millis();  //get the current "time" (actually the number of milliseconds since the program started)
 	
     if (currentMillis - startMillis >= sampleTime)  //test whether the period has elapsed
