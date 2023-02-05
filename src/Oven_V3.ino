@@ -36,10 +36,14 @@ char Line2Col2Buf[8];
  // Use software SPI: CS, DI, DO, CLK
 Adafruit_MAX31865 thermo = Adafruit_MAX31865(39, 38, 41, 40);
 // The value of the Rref resistor. Use 430.0 for PT100 and 4300.0 for PT1000
-#define RREF      4300.0
+// #define RREF      4350.0
+#define RREF      4300.0 //changed to try to fix readying miss match
 // The 'nominal' 0-degrees-C resistance of the sensor
 // 100.0 for PT100, 1000.0 for PT1000
-#define RNOMINAL  1020.0
+
+// #define RNOMINAL  1018.3
+#define RNOMINAL  1000
+
 int currentTemperature = 0;
 
 //PID Tuning
@@ -52,7 +56,7 @@ double sampleTime = 50;
 //Define Variables we'll be connecting to
 double Setpoint, Input, Output;
 //Specify the links and initial tuning parameters
-double Kp = 100, Ki = 100, Kd = 0.1;
+double Kp = 250, Ki = 250, Kd = 0.07;
 PID myPID(&Input, &Output, &Setpoint, Kp, Ki, Kd, P_ON_M, DIRECT);
 
 int WindowSize = 200;
@@ -363,6 +367,9 @@ int roundToNearestMultiple(int numberToRound, int multiple) {
 void readPotentionmeterTemp(int potentiometerValue)
 {
     int temp = ceil(((float)potentiometerValue / (float)maxPotValue) * maxTemp);
+    //DEBUG
+    Serial.print("TARGTEMP ");
+    Serial.println(temp);
 
     int result = roundToNearestMultiple(temp, 5);
 
@@ -420,9 +427,12 @@ void processPID()
     }
 }
 
-void readTemp() {	
-    Serial.print("RTD Temp");
-    Serial.println(thermo.readRTD());
+void readTemp() {
+   
+    //DEBUG     
+    // sprintf (buf, "RTDTEMP is %3d \r\n", thermo.readRTD());
+    // Serial.print (buf);
+
     currentMillis = millis();  //get the current "time" (actually the number of milliseconds since the program started)
 	
     if (currentMillis - startMillis >= sampleTime)  //test whether the period has elapsed
