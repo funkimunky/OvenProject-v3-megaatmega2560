@@ -60,7 +60,7 @@ int WindowSize = 200;
 
 
 //OVEN VARIABLES
-int ovenSafeTemp = 60;
+int ovenSafeTemp = 80;
 
 // OVEN CONTROL VARIABLES
 int maxTemp = 280;
