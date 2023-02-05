@@ -39,7 +39,7 @@ Adafruit_MAX31865 thermo = Adafruit_MAX31865(39, 38, 41, 40);
 #define RREF      4300.0
 // The 'nominal' 0-degrees-C resistance of the sensor
 // 100.0 for PT100, 1000.0 for PT1000
-#define RNOMINAL  1000.0
+#define RNOMINAL  1020.0
 int currentTemperature = 0;
 
 //PID Tuning
