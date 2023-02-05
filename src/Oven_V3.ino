@@ -301,7 +301,7 @@ Read all the control knobs to evaluate state.
 */
 void ReadControls() {
     currentMillis = millis();  //get the current "time" (actually the number of milliseconds since the program started)
-    float temp = 0;
+    // float temp = 0;
 
     if (currentMillis - controlsStartMillis >= controlsDelay)  //test whether the period has elapsed
     {
