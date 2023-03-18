@@ -56,7 +56,8 @@ double sampleTime = 50;
 //Define Variables we'll be connecting to
 double Setpoint, Input, Output;
 //Specify the links and initial tuning parameters
-double Kp = 250, Ki = 250, Kd = 0.07;
+double Kp = 100, Ki = 100, Kd = 0.1;
+// double Kp = 250, Ki = 250, Kd = 0.07;
 PID myPID(&Input, &Output, &Setpoint, Kp, Ki, Kd, P_ON_M, DIRECT);
 
 int WindowSize = 200;
@@ -138,7 +139,7 @@ void setup() {
     backLightON();
 
     lcd.setCursor(0, 0);
-    lcd.print("DAVEOVEN V3");
+    lcd.print("DAVEOVEN V3.1");
     delay(2000);
     lcd.clear();
 
@@ -368,8 +369,8 @@ void readPotentionmeterTemp(int potentiometerValue)
 {
     int temp = ceil(((float)potentiometerValue / (float)maxPotValue) * maxTemp);
     //DEBUG
-    Serial.print("TARGTEMP ");
-    Serial.println(temp);
+    // Serial.print("TARGTEMP ");
+    // Serial.println(temp);
 
     int result = roundToNearestMultiple(temp, 5);
 
