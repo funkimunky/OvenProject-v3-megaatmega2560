@@ -189,8 +189,8 @@ float Adafruit_MAX31865::temperature(float RTDnominal, float refResistor) {
   temp = (sqrt(temp) + Z1) / Z4;
   
   //DEBUG
-  Serial.print("READTEMP ");
-  Serial.println(temp);
+  // Serial.print("READTEMP ");
+  // Serial.println(temp);
 
   if (temp >= 0)
     return temp;
