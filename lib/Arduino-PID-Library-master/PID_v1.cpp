@@ -25,8 +25,12 @@ PID::PID(double* Input, double* Output, double* Setpoint,
     mySetpoint = Setpoint;
     inAuto = false;
 
-    PID::SetOutputLimits(0, 255);				//default output limit corresponds to
-												//the arduino pwm limits
+   PID::SetOutputLimits(0, 8000);         // set max out put limits to 8000 millis
+                                          // 8 seconds
+
+   //dont think I need this as we are not using pwm for the output
+   //PID::SetOutputLimits(0, 255);			//default output limit corresponds to
+												      //the arduino pwm limits
 
     SampleTime = 100;							//default Controller Sample Time is 0.1 seconds
 
@@ -71,8 +75,10 @@ bool PID::Compute()
       /*Add Proportional on Measurement, if P_ON_M is specified*/
       if(!pOnE) outputSum-= kp * dInput;
 
-      if(outputSum > outMax) outputSum= outMax;
-      else if(outputSum < outMin) outputSum= outMin;
+      //output is total time in millis that the scr will be switched on for
+      //dont think this is needed as outMax is used to fix output already
+      // if(outputSum > outMax) outputSum= outMax;
+      // else if(outputSum < outMin) outputSum= outMin;
 
       /*Add Proportional on Error, if P_ON_E is specified*/
 	   double output;
@@ -82,9 +88,9 @@ bool PID::Compute()
       /*Compute Rest of PID Output*/
       output += outputSum - kd * dInput;
 
-	    if(output > outMax) output = outMax;
+	   if(output > outMax) output = outMax;
       else if(output < outMin) output = outMin;
-	    *myOutput = output;
+	   *myOutput = output;
 
       /*Remember some variables for next time*/
       lastInput = input;

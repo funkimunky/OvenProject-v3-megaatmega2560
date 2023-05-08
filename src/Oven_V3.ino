@@ -59,7 +59,7 @@ double Kp = 100, Ki = 100, Kd = 0.1;
 // double Kp = 250, Ki = 250, Kd = 0.07;
 PID myPID(&Input, &Output, &Setpoint, Kp, Ki, Kd, P_ON_M, DIRECT);
 
-int WindowSize = 200;
+int WindowSize = 5000;
 
 
 
@@ -189,7 +189,6 @@ void loop() {
     else {
         ReadControls();
         if (ovenProg == FAN_OVEN) {
-			//Serial.println("OvenProg = FAN_OVEN");
             backlightAuto = false;
             backLightON();			
             if (DOOR_OPEN) {
@@ -197,6 +196,7 @@ void loop() {
                 digitalWrite(SCR_PIN, LOW);
                 relayOff(RELAYSAFETY_PIN);
                 relayOff(ELEMENTFAN_PIN);
+                windowStartTime = 0;
                 Input = 0;
                 Output = 0;
             }
@@ -222,8 +222,10 @@ void loop() {
 
 }
 
-void startWindowTimer(){	
-		windowStartTime = millis();
+void startWindowTimer(){
+    if(windowStartTime == 0){
+        windowStartTime = millis();
+    }		
 }
 
 void backlightCheck() {
@@ -283,12 +285,10 @@ void checkSafetyTemp() {
     {
         if (currentTemperature > ovenSafeTemp)
         {
-
             relayOn(TOPFAN_PIN);
         }
         else
         {
-
             relayOff(TOPFAN_PIN);
         }
         ovenSafetyStartMillis = currentMillis;
@@ -300,17 +300,9 @@ Read all the control knobs to evaluate state.
 */
 void ReadControls() {
     currentMillis = millis();  //get the current "time" (actually the number of milliseconds since the program started)
-    // float temp = 0;
 
     if (currentMillis - controlsStartMillis >= controlsDelay)  //test whether the period has elapsed
     {
-
-		//if (currentMillis - lcdClearStartMillis >= lcdClearDelay)  //test whether the period has elapsed
-		//{
-			//lcd.clear();
-			//lcdClearStartMillis = currentMillis;
-		//}
-		
         readPotentionmeterTemp(analogRead(TEMPCONTROL_PIN));
 
         readPotentiometerProg(analogRead(OVENPROG_PIN));
@@ -393,30 +385,24 @@ void readPotentionmeterTemp(int potentiometerValue)
 
 void processPID()
 {
-    //Serial.println("ProcessPID called");
-	Input = currentTemperature;//use current tempertature as input
+    Input = currentTemperature;//use current tempertature as input
     Setpoint = ovenTempSet;
     myPID.Compute();
 
     /************************************************
     * turn the output pin on/off based on pid output
     ************************************************/
-    if (millis() - windowStartTime > WindowSize)
+    //TODO windoStartTime is called just before process PID this will never reach the window size as 
+    //millis - windowsStartTime will almost always be zero
+    unsigned long now = millis();
+    if ((now - windowStartTime) > WindowSize)
     { //time to shift the Relay Window
         windowStartTime += WindowSize;
     }
-	
-	unsigned long timeTest = millis() - windowStartTime;
-	
+	//https://playground.arduino.cc/Code/PIDLibraryRelayOutputExample/
     //TODO check if this is messed up by opening door
-    if (Output <= timeTest)
-    {
-         digitalWrite(SCR_PIN, LOW);
-    }
-    else
-    {
-		digitalWrite(SCR_PIN, HIGH);
-    }
+    if (Output > now - windowStartTime) digitalWrite(SCR_PIN, HIGH);
+    else digitalWrite(SCR_PIN, LOW);
 }
 
 void readTemp() {
