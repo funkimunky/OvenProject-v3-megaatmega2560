@@ -22,7 +22,6 @@ bool DOOR_OPEN = false;
 bool lightsOn = false;
 bool backlightIsOn = false;
 bool backlightAuto = true;
-bool timerStarted = false;
 
 //LCD VARIABLES
 LiquidCrystal_I2C lcd(0x27, 20, 4);  // set the LCD address to 0x27 for a 16 chars and 2 line display
@@ -33,7 +32,7 @@ char Line2Col2Buf[8];
 
 
 //MAX31865 VARIABLES
- // Use software SPI: CS, DI, DO, CLK
+// Use software SPI: CS, DI, DO, CLK
 Adafruit_MAX31865 thermo = Adafruit_MAX31865(39, 38, 41, 40);
 // The value of the Rref resistor. Use 430.0 for PT100 and 4300.0 for PT1000
 // #define RREF      4350.0
@@ -52,7 +51,7 @@ int currentTemperature = 0;
 //Ki	        DECREASE	    INCREASE	    INCREASE	    ELIMANATE
 //Kd	        INCREASE	    DECREASE	    DECREASE	    NO CHANGE
 // PID VARIABLES
-double sampleTime = 50;
+double sampleTime = 100;
 //Define Variables we'll be connecting to
 double Setpoint, Input, Output;
 //Specify the links and initial tuning parameters
@@ -139,7 +138,7 @@ void setup() {
     backLightON();
 
     lcd.setCursor(0, 0);
-    lcd.print("DAVEOVEN V3.1");
+    lcd.print("DAVEOVEN V3.1.1");
     delay(2000);
     lcd.clear();
 
@@ -192,8 +191,7 @@ void loop() {
         if (ovenProg == FAN_OVEN) {
 			//Serial.println("OvenProg = FAN_OVEN");
             backlightAuto = false;
-            backLightON();
-			startWindowTimer();
+            backLightON();			
             if (DOOR_OPEN) {
                 switchLightOn();
                 digitalWrite(SCR_PIN, LOW);
@@ -201,12 +199,12 @@ void loop() {
                 relayOff(ELEMENTFAN_PIN);
                 Input = 0;
                 Output = 0;
-				timerStarted = false;
             }
             else {
                 switchLightOn();
                 relayOn(RELAYSAFETY_PIN);
                 relayOn(ELEMENTFAN_PIN);
+                startWindowTimer();
                 processPID();
             }
 
@@ -218,18 +216,14 @@ void loop() {
             relayOff(RELAYSAFETY_PIN);
             relayOff(ELEMENTFAN_PIN);
             switchLightOff();
-			timerStarted = false;
         }
     }
 
 
 }
 
-void startWindowTimer(){
-	if(!timerStarted){
+void startWindowTimer(){	
 		windowStartTime = millis();
-		timerStarted = true;
-	}	
 }
 
 void backlightCheck() {
@@ -364,19 +358,35 @@ int roundToNearestMultiple(int numberToRound, int multiple) {
     return result;
 }
 
+int cmpfunc (const void * a, const void * b) {
+    return ( *(int*)a - *(int*)b );
+}
 
 void readPotentionmeterTemp(int potentiometerValue)
 {
     int temp = ceil(((float)potentiometerValue / (float)maxPotValue) * maxTemp);
-    //DEBUG
-    // Serial.print("TARGTEMP ");
-    // Serial.println(temp);
 
-    int result = roundToNearestMultiple(temp, 5);
+    int arraySize = 5;
+    int temps[arraySize];
+    for(int i=0; i<= arraySize-1;i++){
+        temps[i] = roundToNearestMultiple(ceil(((float)potentiometerValue / (float)maxPotValue) * maxTemp),5);
+    } 
 
-    ovenTempSet = result;
+    qsort(temps, 5, sizeof(int), cmpfunc);
 
-    sprintf(Line1Col1Buf, "t:%03d", result);
+    int tempSum = 0;
+
+    for(int i=0; i<= arraySize-1;i++){
+        if(!(i==0 || i== arraySize-1)){
+            tempSum += temps[i];
+        }
+    }
+
+    int averageTemp = tempSum / arraySize - 2;   
+
+    ovenTempSet = averageTemp;
+
+    sprintf(Line1Col1Buf, "t:%03d", ovenTempSet);
     lcd.setCursor(0, 0);
     lcd.print(Line1Col1Buf);
 }
@@ -395,36 +405,17 @@ void processPID()
     { //time to shift the Relay Window
         windowStartTime += WindowSize;
     }
-
-	// Serial.print("Output");
-	// Serial.print("\t");
-	// Serial.print(Output);
-	// Serial.print("\t");
-	
-	// Serial.print("windowStartTime");
-	// Serial.print("\t");
-	// Serial.print(windowStartTime);
-	// Serial.print("\t");	
 	
 	unsigned long timeTest = millis() - windowStartTime;
 	
-	// Serial.print("millis - windowStartTime");
-	// Serial.print("\t");
-	// Serial.print(timeTest);
-	// Serial.print("\t");
-	
+    //TODO check if this is messed up by opening door
     if (Output <= timeTest)
     {
-		// Serial.print("ProcessPID LOW");
-		// Serial.print("\n");
-		
-        digitalWrite(SCR_PIN, LOW);
+         digitalWrite(SCR_PIN, LOW);
     }
     else
     {
-		// Serial.print("ProcessPID HIGH");
-		// Serial.print("\n");
-	    digitalWrite(SCR_PIN, HIGH);
+		digitalWrite(SCR_PIN, HIGH);
     }
 }
 
