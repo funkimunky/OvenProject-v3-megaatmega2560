@@ -59,7 +59,7 @@ double Kp = 100, Ki = 100, Kd = 0.1;
 // double Kp = 250, Ki = 250, Kd = 0.07;
 PID myPID(&Input, &Output, &Setpoint, Kp, Ki, Kd, P_ON_M, DIRECT);
 
-int WindowSize = 5000;
+int WindowSize = 250;
 
 
 
@@ -197,7 +197,6 @@ void loop() {
                 relayOff(RELAYSAFETY_PIN);
                 relayOff(ELEMENTFAN_PIN);
                 windowStartTime = 0;
-                Input = 0;
                 Output = 0;
             }
             else {
@@ -216,6 +215,8 @@ void loop() {
             relayOff(RELAYSAFETY_PIN);
             relayOff(ELEMENTFAN_PIN);
             switchLightOff();
+            windowStartTime = 0;
+            Output = 0;
         }
     }
 
@@ -303,7 +304,7 @@ void ReadControls() {
 
     if (currentMillis - controlsStartMillis >= controlsDelay)  //test whether the period has elapsed
     {
-        readPotentionmeterTemp(analogRead(TEMPCONTROL_PIN));
+        readPotentionmeterTemp();
 
         readPotentiometerProg(analogRead(OVENPROG_PIN));
 
@@ -343,38 +344,43 @@ void readPotentiometerProg(int potentiometerValue)
 }
 
 int roundToNearestMultiple(int numberToRound, int multiple) {
-
     int result;
     result = numberToRound + multiple / 2;
     result = result - result % multiple;
     return result;
 }
 
-int cmpfunc (const void * a, const void * b) {
-    return ( *(int*)a - *(int*)b );
+int cmpfunc(const void *cmp1, const void *cmp2) {
+  // Need to cast the void * to int *
+  int a = *((int *)cmp1);
+  int b = *((int *)cmp2);
+  // The comparison
+  return a > b ? -1 : (a < b ? 1 : 0);
+  // A simpler, probably faster way:
+  // return b - a;
 }
 
 void readPotentionmeterTemp(int potentiometerValue)
 {
-    int temp = ceil(((float)potentiometerValue / (float)maxPotValue) * maxTemp);
-
     int arraySize = 5;
-    int temps[arraySize];
-    for(int i=0; i<= arraySize-1;i++){
-        temps[i] = roundToNearestMultiple(ceil(((float)potentiometerValue / (float)maxPotValue) * maxTemp),5);
-    } 
+    int temps[arraySize]; 
 
-    qsort(temps, 5, sizeof(int), cmpfunc);
+    for (int i = 0; i < arraySize; i++) {
+        double a = (double)analogRead(TEMPCONTROL_PIN) /  (float)maxPotValue * maxTemp;
+        temps[i] = (int)lround(a);
+    }
+    int temps_length = sizeof(temps) / sizeof(temps[0]);
+    qsort(temps, temps_length, sizeof(temps[0]), cmpfunc);
 
     int tempSum = 0;
 
     for(int i=0; i<= arraySize-1;i++){
-        if(!(i==0 || i== arraySize-1)){
+        if(!(i==0 || i==arraySize-1)){
             tempSum += temps[i];
         }
     }
 
-    int averageTemp = tempSum / arraySize - 2;   
+    int averageTemp = roundToNearestMultiple(tempSum / (arraySize - 2), 5);
 
     ovenTempSet = averageTemp;
 
@@ -392,24 +398,17 @@ void processPID()
     /************************************************
     * turn the output pin on/off based on pid output
     ************************************************/
-    //TODO windoStartTime is called just before process PID this will never reach the window size as 
-    //millis - windowsStartTime will almost always be zero
     unsigned long now = millis();
     if ((now - windowStartTime) > WindowSize)
     { //time to shift the Relay Window
         windowStartTime += WindowSize;
     }
 	//https://playground.arduino.cc/Code/PIDLibraryRelayOutputExample/
-    //TODO check if this is messed up by opening door
     if (Output > now - windowStartTime) digitalWrite(SCR_PIN, HIGH);
     else digitalWrite(SCR_PIN, LOW);
 }
 
 void readTemp() {
-   
-    //DEBUG     
-    // sprintf (buf, "RTDTEMP is %3d \r\n", thermo.readRTD());
-    // Serial.print (buf);
 
     currentMillis = millis();  //get the current "time" (actually the number of milliseconds since the program started)
 	
