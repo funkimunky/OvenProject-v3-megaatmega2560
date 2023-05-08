@@ -44,7 +44,6 @@ Adafruit_MAX31865 thermo = Adafruit_MAX31865(39, 38, 41, 40);
 #define RNOMINAL  1000
 
 int currentTemperature = 0;
-
 //PID Tuning
 //              RISE TIME	    OVERSHOOTS	    SETTLING TIME   STEADY STATE ERROR
 //Kp	        DECREASE	    INCREASE	    SMALL CHANGE	DECREASE
@@ -58,27 +57,19 @@ double Setpoint, Input, Output;
 double Kp = 100, Ki = 100, Kd = 0.1;
 // double Kp = 250, Ki = 250, Kd = 0.07;
 PID myPID(&Input, &Output, &Setpoint, Kp, Ki, Kd, P_ON_M, DIRECT);
-
 int WindowSize = 250;
-
-
-
 //OVEN VARIABLES
 int ovenSafeTemp = 80;
-
 // OVEN CONTROL VARIABLES
 int maxTemp = 280;
 int maxPotValue = 1000;
 int ovenProg = 0;
 int ovenTempSet = 0;
-
 //Oven programs
 #define OVEN_OFF  0
 #define FAN_OVEN  1
 
-
 //PINS
-
 //analog potentiometer pins
 int TEMPCONTROL_PIN = A15;
 int OVENPROG_PIN = A14;
@@ -89,14 +80,11 @@ int ELEMENTFAN_PIN = 32;
 int TOPFAN_PIN = 35;
 int LIGHTS_PIN = 34;
 
-
 //Door detect pin
 int DOOROPEN_PIN = 37;
 
 //SCR Pin
 int SCR_PIN = 36;
-
-
 
 void setup() {
 
@@ -306,7 +294,7 @@ void ReadControls() {
     {
         readPotentionmeterTemp();
 
-        readPotentiometerProg(analogRead(OVENPROG_PIN));
+        readPotentiometerProg();
 
         readOvenDoor();
 
@@ -315,28 +303,23 @@ void ReadControls() {
 }
 
 //pass control readings from potentiometer and determine what program to set
-void readPotentiometerProg(int potentiometerValue)
+void readPotentiometerProg()
 {
+    int potentiometerValue = analogRead(OVENPROG_PIN);
     if (potentiometerValue <= 512)
     {
         sprintf(Line1Col1Buf, "p:%s", "OFF");
-
         lcd.setCursor(0, 1);
         lcd.print(Line1Col1Buf);
-
         ovenProg = OVEN_OFF;
-
         Output = 0;
-
         return;
-
     }
     else if (potentiometerValue > 512 && potentiometerValue <= 1040)
     {
         sprintf(Line1Col1Buf, "p:%s", "ON ");
         lcd.setCursor(0, 1);
         lcd.print(Line1Col1Buf);
-
         ovenProg = FAN_OVEN;
         return;
     }
@@ -360,7 +343,7 @@ int cmpfunc(const void *cmp1, const void *cmp2) {
   // return b - a;
 }
 
-void readPotentionmeterTemp(int potentiometerValue)
+void readPotentionmeterTemp()
 {
     int arraySize = 5;
     int temps[arraySize]; 
