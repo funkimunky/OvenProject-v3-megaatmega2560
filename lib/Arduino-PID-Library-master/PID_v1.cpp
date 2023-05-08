@@ -72,8 +72,8 @@ bool PID::Compute()
       double dInput = (input - lastInput);
       outputSum+= (ki * error);
 
-      Serial.println("pOnE");
-      Serial.println(pOnE);
+      // Serial.println("pOnE");
+      // Serial.println(pOnE);
       /*Add Proportional on Measurement, if P_ON_M is specified*/
       if(!pOnE) outputSum-= kp * dInput;
 
@@ -81,14 +81,14 @@ bool PID::Compute()
       else if(outputSum < outMin) outputSum= outMin;
 
       /*Add Proportional on Error, if P_ON_E is specified*/
-      Serial.println("kp * error");
-      Serial.println(kp * error);
+      // Serial.println("kp * error");
+      // Serial.println(kp * error);
 	   double output;
       if(pOnE) output = kp * error;
       else output = 0;
 
-      Serial.println("outputSum");
-      Serial.println(outputSum);
+      // Serial.println("outputSum");
+      // Serial.println(outputSum);
       /*Compute Rest of PID Output*/
       output += outputSum - kd * dInput;
 
@@ -96,8 +96,8 @@ bool PID::Compute()
       else if(output < outMin) output = outMin;
 	   *myOutput = output;
 
-      Serial.println("output");
-      Serial.println(output);
+      // Serial.println("output");
+      // Serial.println(output);
       /*Remember some variables for next time*/
       lastInput = input;
       lastTime = now;

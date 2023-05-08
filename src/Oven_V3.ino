@@ -58,7 +58,7 @@ double Setpoint, Input, Output;
 // double Kp = 2, Ki = 5, Kd = 1;
 double Kp = 50, Ki = 100, Kd = 0.1;
 PID myPID(&Input, &Output, &Setpoint, Kp, Ki, Kd, P_ON_E, DIRECT);
-int WindowSize = 250;
+int WindowSize = 2000;
 //OVEN VARIABLES
 int ovenSafeTemp = 80;
 // OVEN CONTROL VARIABLES
@@ -385,16 +385,20 @@ void processPID()
     * turn the output pin on/off based on pid output
     ************************************************/
     unsigned long now = millis();
-    // Serial.println("windowStartTime");
-    // Serial.println(windowStartTime);
-    if ((now - windowStartTime) > WindowSize)
-    { //time to shift the Relay Window
-        windowStartTime += WindowSize;
+
+    Serial.println("now - windowStartTime");
+    Serial.println(now - windowStartTime);
+    if(now>windowStartTime){        
+        if ((now - windowStartTime) > WindowSize)
+        { //time to shift the Relay Window
+            //added extra amount to account for time taken reach this point in code
+            //without it the difference grows uncontrollably
+            windowStartTime += WindowSize+100;
+        }
     }
     // Serial.println("Output");
     // Serial.println(Output);
-    Serial.println("now - windowStartTime");
-    Serial.println(now - windowStartTime);
+    
     Serial.println("Output > now - windowStartTime");
     Serial.println(Output > now - windowStartTime);
 	//https://playground.arduino.cc/Code/PIDLibraryRelayOutputExample/
@@ -403,7 +407,7 @@ void processPID()
         }    
     else {
         digitalWrite(SCR_PIN, LOW);
-        windowStartTime = now;
+        // windowStartTime = now;
     }
 }
 
