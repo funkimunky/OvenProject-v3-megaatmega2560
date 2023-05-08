@@ -405,36 +405,17 @@ void processPID()
     { //time to shift the Relay Window
         windowStartTime += WindowSize;
     }
-
-	// Serial.print("Output");
-	// Serial.print("\t");
-	// Serial.print(Output);
-	// Serial.print("\t");
-	
-	// Serial.print("windowStartTime");
-	// Serial.print("\t");
-	// Serial.print(windowStartTime);
-	// Serial.print("\t");	
 	
 	unsigned long timeTest = millis() - windowStartTime;
 	
-	// Serial.print("millis - windowStartTime");
-	// Serial.print("\t");
-	// Serial.print(timeTest);
-	// Serial.print("\t");
-	
+    //TODO check if this is messed up by opening door
     if (Output <= timeTest)
     {
-		// Serial.print("ProcessPID LOW");
-		// Serial.print("\n");
-		
-        digitalWrite(SCR_PIN, LOW);
+         digitalWrite(SCR_PIN, LOW);
     }
     else
     {
-		// Serial.print("ProcessPID HIGH");
-		// Serial.print("\n");
-	    digitalWrite(SCR_PIN, HIGH);
+		digitalWrite(SCR_PIN, HIGH);
     }
 }
 
