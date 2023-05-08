@@ -358,19 +358,35 @@ int roundToNearestMultiple(int numberToRound, int multiple) {
     return result;
 }
 
+int cmpfunc (const void * a, const void * b) {
+    return ( *(int*)a - *(int*)b );
+}
 
 void readPotentionmeterTemp(int potentiometerValue)
 {
     int temp = ceil(((float)potentiometerValue / (float)maxPotValue) * maxTemp);
-    //DEBUG
-    // Serial.print("TARGTEMP ");
-    // Serial.println(temp);
 
-    int result = roundToNearestMultiple(temp, 5);
+    int arraySize = 5;
+    int temps[arraySize];
+    for(int i=0; i<= arraySize-1;i++){
+        temps[i] = roundToNearestMultiple(ceil(((float)potentiometerValue / (float)maxPotValue) * maxTemp),5);
+    } 
 
-    ovenTempSet = result;
+    qsort(temps, 5, sizeof(int), cmpfunc);
 
-    sprintf(Line1Col1Buf, "t:%03d", result);
+    int tempSum = 0;
+
+    for(int i=0; i<= arraySize-1;i++){
+        if(!(i==0 || i== arraySize-1)){
+            tempSum += temps[i];
+        }
+    }
+
+    int averageTemp = tempSum / arraySize - 2;   
+
+    ovenTempSet = averageTemp;
+
+    sprintf(Line1Col1Buf, "t:%03d", ovenTempSet);
     lcd.setCursor(0, 0);
     lcd.print(Line1Col1Buf);
 }
