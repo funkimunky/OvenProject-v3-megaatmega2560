@@ -54,10 +54,11 @@ double sampleTime = 100;
 //Define Variables we'll be connecting to
 double Setpoint, Input, Output;
 //Specify the links and initial tuning parameters
-double Kp = 100, Ki = 100, Kd = 0.1;
-// double Kp = 250, Ki = 250, Kd = 0.07;
-PID myPID(&Input, &Output, &Setpoint, Kp, Ki, Kd, P_ON_M, DIRECT);
-int WindowSize = 250;
+// double Kp = 100, Ki = 100, Kd = 0.1;
+// double Kp = 2, Ki = 5, Kd = 1;
+double Kp = 50, Ki = 100, Kd = 0.1;
+PID myPID(&Input, &Output, &Setpoint, Kp, Ki, Kd, P_ON_E, DIRECT);
+int WindowSize = 2000;
 //OVEN VARIABLES
 int ovenSafeTemp = 80;
 // OVEN CONTROL VARIABLES
@@ -126,7 +127,7 @@ void setup() {
     backLightON();
 
     lcd.setCursor(0, 0);
-    lcd.print("DAVEOVEN V3.1.1");
+    lcd.print("DAVEOVEN V3.2");
     delay(2000);
     lcd.clear();
 
@@ -161,8 +162,6 @@ void setup() {
     ovenSafetyStartMillis = millis();
     backlightStartMillis = millis();
     lcdClearStartMillis = millis();
-
-
 }
 
 void loop() {
@@ -177,17 +176,20 @@ void loop() {
     else {
         ReadControls();
         if (ovenProg == FAN_OVEN) {
+            // Serial.println("FAN_OVEN");
             backlightAuto = false;
             backLightON();			
             if (DOOR_OPEN) {
+                // Serial.println("DOOR_OPEN");
                 switchLightOn();
                 digitalWrite(SCR_PIN, LOW);
                 relayOff(RELAYSAFETY_PIN);
                 relayOff(ELEMENTFAN_PIN);
                 windowStartTime = 0;
-                Output = 0;
+                Output = 0;                
             }
             else {
+                // Serial.println("processPID");
                 switchLightOn();
                 relayOn(RELAYSAFETY_PIN);
                 relayOn(ELEMENTFAN_PIN);
@@ -197,6 +199,7 @@ void loop() {
 
         }
         else {
+            // Serial.println("OFF");
             backlightOFF();
             backlightAuto = true;
             digitalWrite(SCR_PIN, LOW);
@@ -382,13 +385,30 @@ void processPID()
     * turn the output pin on/off based on pid output
     ************************************************/
     unsigned long now = millis();
-    if ((now - windowStartTime) > WindowSize)
-    { //time to shift the Relay Window
-        windowStartTime += WindowSize;
+
+    Serial.println("now - windowStartTime");
+    Serial.println(now - windowStartTime);
+    if(now>windowStartTime){        
+        if ((now - windowStartTime) > WindowSize)
+        { //time to shift the Relay Window
+            //added extra amount to account for time taken reach this point in code
+            //without it the difference grows uncontrollably
+            windowStartTime += WindowSize+100;
+        }
     }
+    // Serial.println("Output");
+    // Serial.println(Output);
+    
+    Serial.println("Output > now - windowStartTime");
+    Serial.println(Output > now - windowStartTime);
 	//https://playground.arduino.cc/Code/PIDLibraryRelayOutputExample/
-    if (Output > now - windowStartTime) digitalWrite(SCR_PIN, HIGH);
-    else digitalWrite(SCR_PIN, LOW);
+    if (Output > now - windowStartTime) {
+        digitalWrite(SCR_PIN, HIGH);
+        }    
+    else {
+        digitalWrite(SCR_PIN, LOW);
+        // windowStartTime = now;
+    }
 }
 
 void readTemp() {
